@@ -174,6 +174,74 @@ flush privileges;
 
 ### 密码强度（待补充）
 
+## redis
+
+``` bash
+# 安装
+yum install redis
+
+# 启动
+systemctl start redis
+
+# 修改配置支持远程连接
+vi /etc/redis.conf
+# 注释掉 bind 127.0.0.1
+# 添加密码认证 取消注释，并添加密码
+requirepass password
+# 保存
+
+# 重启
+systemctl restart redis
+```
+
+## mongodb
+
+``` bash
+# 参考官网yum源 https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/, 并添加源文件
+vim /etc/yum.repos.d/mongodb-org-4.2.repo
+
+# 添加源信息
+[mongodb-org-4.2]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.2/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc
+
+# 安装
+yum install mongodb-org
+# 上面这种命令默认会安装 mongodb-org-server mongodb-org-mongos mongodb-org-shell mongodb-org-tools
+
+# 修改配置文件开启访问控制
+vi /etc/mongod.conf
+
+# 开启 security
+security:
+  authorization: enabled
+
+# 修改绑定ip开启外部访问
+bindIp: 0.0.0.0
+
+# 增加MongoDB的打开文件和进程限制
+echo "mongod     soft    nofiles   64000" >> /etc/security/limits.conf
+echo "mongod     soft    nproc     64000" >> /etc/security/limits.conf
+
+# 启动
+systemctl start mongod
+
+# 创建数据库用户
+mongo
+use admin
+db.createUser({user: "mongo-admin", pwd: "password", roles:[{role: "userAdminAnyDatabase", db: "admin"}]})
+# 上面创建了mongo-admin用户，并授予权限
+
+# 退出
+quit()
+
+# 检测创建的用户，注意：mongo-admin有创建用户的权限
+mongo -u mongo-admin -p --authenticationDatabase admin
+```
+
 ## nvm（node版本管理工具）
 
 ``` bash
